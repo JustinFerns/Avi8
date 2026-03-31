@@ -1,10 +1,24 @@
-const mongoose = require('mongoose');
+const router = require('express').Router();
+const Question = require('../models/Question');
 
-const QuestionSchema = new mongoose.Schema({
-  question: String,
-  options: [String],
-  correctAnswer: String,
-  subject: String
+router.get('/', async (req, res) => {
+  try {
+    const questions = await Question.find().limit(10);
+    res.json(questions);
+  } catch (err) {
+    console.error('Error fetching questions:', err);
+    res.status(500).json({ error: 'Failed to fetch questions' });
+  }
 });
 
-module.exports = mongoose.model('Question', QuestionSchema);
+router.get('/mock', async (req, res) => {
+  try {
+    const questions = await Question.aggregate([{ $sample: { size: 20 } }]);
+    res.json(questions);
+  } catch (err) {
+    console.error('Error fetching mock questions:', err);
+    res.status(500).json({ error: 'Failed to fetch mock questions' });
+  }
+});
+
+module.exports = router;
