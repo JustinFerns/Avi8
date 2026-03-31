@@ -1,36 +1,47 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-export default function MockTest() {
-  const [questions, setQuestions] = useState([]);
-  const [current, setCurrent] = useState(0);
-  const [score, setScore] = useState(0);
+function MockTest() {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [data, setData] = useState(null);
 
-  useEffect(() => {
-    fetch('http://localhost:5000/api/questions/mock')
-      .then(res => res.json())
-      .then(data => setQuestions(data));
-  }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch('https://api.example.com/mocktest');
+                if (!response.ok) throw new Error('Network response was not ok');
+                const result = await response.json();
+                // Additional data validation can go here
+                if (!Array.isArray(result)) throw new Error('Data format is invalid');
+                setData(result);
+            } catch (error) {
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
 
-  const handleAnswer = (opt) => {
-    if (opt === questions[current].correctAnswer) {
-      setScore(score + 1);
+    if (loading) {
+        return <div>Loading...</div>;
     }
-    setCurrent(current + 1);
-  };
 
-  if (current >= questions.length) {
-    return <h1>Score: {score}</h1>;
-  }
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
 
-  return (
-    <div>
-      <h2>Mock Test</h2>
-      <p>{questions[current]?.question}</p>
-      {questions[current]?.options.map((opt, i) => (
-        <button key={i} onClick={() => handleAnswer(opt)}>
-          {opt}
-        </button>
-      ))}
-    </div>
-  );
+    return (
+        <div>
+            <h1>Mock Test</h1>
+            <ul>
+                {data.map((item, index) => (
+                    <li key={index}>{item}</li>
+                ))}
+            </ul>
+        </div>
+    );
 }
+
+export default MockTest;
