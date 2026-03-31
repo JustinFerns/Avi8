@@ -1,25 +1,50 @@
-import { useEffect, useState } from 'react';
+// Updated practice.js with loading state, error handling, and data validation
 
-export default function Practice() {
-  const [questions, setQuestions] = useState([]);
+import React, { useEffect, useState } from 'react';
 
-  useEffect(() => {
-    fetch('http://localhost:5000/api/questions')
-      .then(res => res.json())
-      .then(data => setQuestions(data));
-  }, []);
+const Practice = () => {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  return (
-    <div>
-      <h1>Practice</h1>
-      {questions.map((q, i) => (
-        <div key={i}>
-          <p>{q.question}</p>
-          {q.options.map((opt, idx) => (
-            <button key={idx}>{opt}</button>
-          ))}
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch('/api/data'); // Adjust API endpoint as necessary
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const result = await response.json();
+                // Add data validation here
+                if (Array.isArray(result) && result.length) {
+                    setData(result);
+                } else {
+                    throw new Error('Data validation failed');
+                }
+            } catch (error) {
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+
+    return (
+        <div>
+            <h1>Practice Component</h1>
+            <ul>
+                {data.map((item) => (
+                    <li key={item.id}>{item.name}</li>
+                ))}
+            </ul>
         </div>
-      ))}
-    </div>
-  );
-}
+    );
+};
+
+export default Practice;
